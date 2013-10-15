@@ -55,10 +55,10 @@ mat4 Transform::perspective(float fovy, float aspect, float zNear, float zFar)
 
 mat4 Transform::scale(const float &sx, const float &sy, const float &sz) 
 {
-    mat4 ret;
-    // YOUR CODE FOR HW2 HERE
-    // Implement scaling 
-    return ret;
+    return mat4(sx, 0.0, 0.0, 0.0,
+			    0.0, sy, 0.0, 0.0,
+				0.0, 0.0, sz, 0.0,
+				0.0, 0.0, 0.0, 1.0);
 }
 
 mat4 Transform::translate(const float &tx, const float &ty, const float &tz) 
