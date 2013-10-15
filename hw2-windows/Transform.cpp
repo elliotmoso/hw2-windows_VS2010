@@ -40,10 +40,11 @@ void Transform::up(float degrees, vec3& eye, vec3& up)
 
 mat4 Transform::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up) 
 {
-    mat4 ret;
-    // YOUR CODE FOR HW2 HERE
-    // Likely the same as in HW 1.  
-    return ret;
+    vec3 center = vec3(0);
+  // YOUR CODE FOR HW1 HERE
+	mat4 look =glm::lookAt(eye,center,up);
+  // You will change this return call
+  return look;
 }
 
 mat4 Transform::perspective(float fovy, float aspect, float zNear, float zFar)
