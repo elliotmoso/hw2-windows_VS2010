@@ -32,8 +32,10 @@ void Transform::left(float degrees, vec3& eye, vec3& up)
 
 void Transform::up(float degrees, vec3& eye, vec3& up) 
 {
-    // YOUR CODE FOR HW2 HERE 
-    // Likely the same as in HW 1.  
+    vec3 perp_axis = glm::normalize(glm::cross(eye, up));
+
+	eye = eye*rotate(degrees, perp_axis);
+	up = up*rotate(degrees, perp_axis);
 }
 
 mat4 Transform::lookAt(const vec3 &eye, const vec3 &center, const vec3 &up) 
