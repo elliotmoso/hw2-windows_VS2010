@@ -63,10 +63,10 @@ mat4 Transform::scale(const float &sx, const float &sy, const float &sz)
 
 mat4 Transform::translate(const float &tx, const float &ty, const float &tz) 
 {
-    mat4 ret;
-    // YOUR CODE FOR HW2 HERE
-    // Implement translation 
-    return ret;
+    	return mat4(1.0, 0.0, 0.0, tx,
+				0.0, 1.0, 0.0, ty,
+				0.0, 0.0, 1.0, tz,
+				0.0, 0.0, 0.0, 1.0);
 }
 
 // To normalize the up direction and construct a coordinate frame.  
