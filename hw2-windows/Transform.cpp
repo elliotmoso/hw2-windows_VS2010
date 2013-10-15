@@ -26,8 +26,8 @@ mat3 Transform::rotate(const float degrees, const vec3& axis)
 
 void Transform::left(float degrees, vec3& eye, vec3& up) 
 {
-    // YOUR CODE FOR HW2 HERE
-    // Likely the same as in HW 1.  
+    eye = eye * rotate(degrees, up);
+	up = up* rotate(degrees,up);
 }
 
 void Transform::up(float degrees, vec3& eye, vec3& up) 
