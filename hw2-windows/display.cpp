@@ -38,77 +38,94 @@ void transformvec (const GLfloat input[4], GLfloat output[4])
   }
 }
 
-void display() 
-{
-  glClearColor(0, 0, 1, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void display() {
+        //glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // I'm including the basic matrix setup for model view to 
+        // give some sense of how this works.  
 
-  // I'm including the basic matrix setup for model view to 
-  // give some sense of how this works.  
+        glMatrixMode(GL_MODELVIEW);
+        mat4 mv ; 
 
-  glMatrixMode(GL_MODELVIEW);
-  mat4 mv; 
+        if (useGlu) mv = glm::lookAt(eye,center,up) ; 
+        else {
+          mv = Transform::lookAt(eye,center,up) ; 
+          mv = glm::transpose(mv) ; // accounting for row major
+        }
+        glLoadMatrixf(&mv[0][0]) ; 
 
-  // Either use the built-in lookAt function or the lookAt implemented by the user.
-  if (useGlu) {
-    mv = glm::lookAt(eye,center,up); 
-  } else {
-    mv = Transform::lookAt(eye,center,up); 
-  }
+        // Set Light and Material properties for the teapot
+        // Lights are transformed by current modelview matrix. 
+        // The shader can't do this globally. 
+        // So we need to do so manually.  
+        if (numused) {
+          glUniform1i(enablelighting,true) ;
 
-  glLoadMatrixf(&mv[0][0]); 
+          // YOUR CODE FOR HW 2 HERE.  
+          // You need to pass the lights to the shader. 
+          // Remember that lights are transformed by modelview first.
+                  float light_pos[4*numLights];
+                  for( int i = 0; i< 4*numused ; i+=4){
+                          //printf("lightposn[%d].w=%.3f,%.3f,%.3f,%.3f\n", i,lightposn[i],lightposn[i+1],lightposn[i+2], lightposn[i+3]);
+                          transformvec( &lightposn[i], &light_pos[i]);//transform light by modelview
+                          //printf("*light_pos[%d].w=%.3f,%.3f,%.3f,%.3f\n", i,light_pos[i],light_pos[i+1],light_pos[i+2], light_pos[i+3]);
+                  }
+                  glUniform1i(numusedcol, numused);
+                  glUniform4fv(lightpos, numused, light_pos);
+                  glUniform4fv(lightcol, numused, lightcolor);
+        }
+        else glUniform1i(enablelighting,false) ; 
+     
 
-  // Lights are transformed by current modelview matrix. 
-  // The shader can't do this globally. 
-  // So we need to do so manually.  
-  if (numused) {
-    glUniform1i(enablelighting,true);
+        // Transformations for objects, involving translation and scaling 
+        mat4 sc(1.0) , tr(1.0), transf(1.0) ; 
+        sc = Transform::scale(sx,sy,1.0) ; 
+        tr = Transform::translate(tx,ty,0.0); 
+                
+                transf = (sc)*(tr)*Transform::lookAt(eye,center,up) ;
+                //transf = glm::transpose(transf);
+        // YOUR CODE FOR HW 2 HERE.  
+        // You need to use scale, translate and modelview to 
+        // set up the net transformation matrix for the objects.  
+        // Account for GLM issues etc.  
+        //glLoadMatrixf(&transf[0][0]) ; 
 
-    // YOUR CODE FOR HW 2 HERE.  
-    // You need to pass the light positions and colors to the shader. 
-    // glUniform4fv() and similar functions will be useful. See FAQ for help with these functions.
-    // The lightransf[] array in variables.h and transformvec() might also be useful here.
-    // Remember that light positions must be transformed by modelview.  
+                
+        for (int i = 0 ; i < numobjects ; i++) {
+          object * obj = &(objects[i]) ; 
 
-  } else {
-    glUniform1i(enablelighting,false); 
-  }
+          {
+          // YOUR CODE FOR HW 2 HERE. 
+          // Set up the object transformations 
+          // And pass in the appropriate material properties
+                          glLoadIdentity();
+                          mat4 matx = glm::transpose((obj->transform)*transf);
+                          glLoadMatrixf(&matx[0][0]);
+                          //printf("obj->ambient: %.2f,%.2f,%.2f,%.2f\n", obj->ambient[0], 
+                          //            obj->ambient[1], obj->ambient[2], obj->ambient[3]);   
+                          //material properties
+                          glUniform4fv(ambientcol ,1, obj->ambient);
+                          glUniform4fv(diffusecol ,1, obj->diffuse );
+                          glUniform4fv(specularcol ,1, obj->specular );
+                          glUniform4fv( emissioncol ,1, obj->emission);
+                          glUniform1f(shininesscol, obj->shininess);
+          }
 
-  // Transformations for objects, involving translation and scaling 
-  mat4 sc(1.0) , tr(1.0), transf(1.0); 
-  sc = Transform::scale(sx,sy,1.0); 
-  tr = Transform::translate(tx,ty,0.0); 
+          // Actually draw the object
+          // We provide the actual glut drawing functions for you.  
+          if (obj -> type == cube) {
+            glutSolidCube(obj->size) ; 
+          }
+          else if (obj -> type == sphere) {
+            const int tessel = 20 ; 
+            glutSolidSphere(obj->size, tessel, tessel) ; 
+          }
+          else if (obj -> type == teapot) {
+            glutSolidTeapot(obj->size) ; 
+          }
 
-  // YOUR CODE FOR HW 2 HERE.  
-  // You need to use scale, translate and modelview to 
-  // set up the net transformation matrix for the objects.  
-  // Account for GLM issues, matrix order (!!), etc.  
-
-  //glLoadMatrixf(&transf[0][0]); 
-
-  for (int i = 0 ; i < numobjects ; i++) {
-    object* obj = &(objects[i]); // Grabs an object struct.
-
-    // YOUR CODE FOR HW 2 HERE. 
-    // Set up the object transformations 
-    // And pass in the appropriate material properties
-    // Again glUniform() related functions will be useful
-
-    // Actually draw the object
-    // We provide the actual glut drawing functions for you.  
-    // Remember that obj->type is notation for accessing struct fields
-    if (obj->type == cube) {
-      glutSolidCube(obj->size); 
-    }
-    else if (obj->type == sphere) {
-      const int tessel = 20; 
-      glutSolidSphere(obj->size, tessel, tessel); 
-    }
-    else if (obj->type == teapot) {
-      glutSolidTeapot(obj->size); 
-    }
-
-  }
-
-  glutSwapBuffers();
+        }
+    
+        glutSwapBuffers();
 }
